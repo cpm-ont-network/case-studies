@@ -2,8 +2,8 @@ PREFIX cr: <https://w3id.org/cr#>
 PREFIX msproj: <http://schemas.microsoft.com/project#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX ci: <https://w3id.org/ci#>
-select ?task ?taskResourceTime ?cost (MAX(?timeLabourResource) as ?costResourceTime) 
-where { 
+SELECT ?task ?taskResourceTime ?cost (MAX(?timeLabourResource) as ?costResourceTime) 
+WHERE { 
        
     ?taskToCostItemAssignment cr:refTask ?task .
     ?taskToCostItemAssignment cr:refCostItem ?cost .
