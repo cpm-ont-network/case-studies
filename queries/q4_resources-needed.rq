@@ -1,0 +1,46 @@
+PREFIX cr: <https://w3id.org/cr#>
+PREFIX msproj: <http://schemas.microsoft.com/project#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ci: <https://w3id.org/ci#>
+PREFIX dtc: <https://dtc-ontology.cms.ed.tum.de/ontology#>
+PREFIX cterm: <https://w3id.org/cterm#>
+SELECT (SUM(?materialQuantity) as ?totalqty) ?um ?materialType ?materialObject
+WHERE { 
+       
+    ?task dtc:startTime ?start.
+    ?task dtc:endTime ?end.
+    
+    ?taskToCostItemAssignment cr:refTask ?task .
+    ?taskToCostItemAssignment cr:refCostItem ?cost .
+     
+    ?taskToGeometryAssignment cr:refTask ?task .
+    ?taskToGeometryAssignment cr:refGeometry ?geometry .    
+      
+    ?resource a cr:MaterialResource.
+    ?resource cterm:hasObject ?materialObject.
+    ?resource cterm:hasMaterial ?materialType.
+    ?resource cr:hasUnit ?um.
+    
+    ?taskToCostItemAssignment cr:refTask ?task .
+    ?taskToCostItemAssignment cr:refCostItem ?cost .
+
+    ?taskToGeometryAssignment cr:refTask ?task .
+    ?taskToGeometryAssignment cr:refGeometry ?geometry .    
+            
+    ?costToGeometryAssignment cr:refCostItem ?cost .
+    ?costToGeometryAssignment cr:refGeometry ?geometry .  
+    ?costToGeometryAssignment cr:refParamQuantity ?calculatedQuantity .
+            
+    ?costToResourceAssignment  cr:refCostItem ?cost .
+    ?costToResourceAssignment  cr:refResource ?resource .
+            
+    ?costToResourceAssignment cr:refParamUtilizationFactor ?utilizationFactor.
+	?resource cr:quantityUnitOfMeasure ?qum .
+    
+    BIND(xsd:float(?calculatedQuantity)*xsd:float(?utilizationFactor)*xsd:float(?qum) as ?materialQuantity)
+
+FILTER (?start >= "2024-10-01T00:00:00"^^xsd:dateTime &&
+          ?start <= "2024-10-15T23:59:59"^^xsd:dateTime)   
+} 
+GROUP BY  ?um  ?materialType ?materialObject
+ORDER BY ?start

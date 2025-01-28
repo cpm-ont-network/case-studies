@@ -1,0 +1,25 @@
+
+PREFIX ci: <https://w3id.org/ci#>
+PREFIX cr: <https://w3id.org/cr#>
+PREFIX ifc2x3: <https://standards.buildingsmart.org/IFC/DEV/IFC2X3/FINAL/OWL#>
+PREFIX ifc42: <https://standards.buildingsmart.org/IFC/DEV/IFC4/ADD2/OWL#>
+PREFIX exp: <https://w3id.org/express#>
+SELECT ?label  (SUM(?quantity) AS ?totalQuantity) ((ROUND(SUM(?unitPrice * ?quantity) * 100) / 100.0) AS ?totalPrice) ?ifcguid
+WHERE {
+  ?subject a cr:CostItemToGeometryAssignment.
+  ?subject cr:refParamQuantity ?quantity.
+  ?subject cr:refCostItem ?costItem.
+  ?subject cr:refGeometry ?element.
+  ?costItem ci:unitPrice ?unitPrice.
+    {
+        ?element ifc42:name_IfcRoot/exp:hasString ?label.
+  	    ?element ifc42:globalId_IfcRoot/exp:hasString ?ifcguid.
+    }
+    UNION
+    {
+        ?element ifc2x3:name_IfcRoot/exp:hasString ?label.
+  	    ?element ifc2x3:globalId_IfcRoot/exp:hasString ?ifcguid.
+    }
+}
+GROUP BY ?label ?ifcguid
+ 

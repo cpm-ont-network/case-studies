@@ -1,0 +1,41 @@
+PREFIX cr: <https://w3id.org/cr#>
+PREFIX msproj: <http://schemas.microsoft.com/project#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ci: <https://w3id.org/ci#>
+select ?task ?taskResourceTime ?cost (MAX(?timeLabourResource) as ?costResourceTime) 
+where { 
+       
+    ?taskToCostItemAssignment cr:refTask ?task .
+    ?taskToCostItemAssignment cr:refCostItem ?cost .
+     
+    ?taskToGeometryAssignment cr:refTask ?task .
+    ?taskToGeometryAssignment cr:refGeometry ?geometry .    
+   
+    ?costToGeometryAssignment cr:refCostItem ?cost .
+    ?costToGeometryAssignment cr:refGeometry ?geometry .  
+    ?costToGeometryAssignment cr:refParamQuantity ?quantity .
+    
+    ?costToResourceAssignment  cr:refCostItem ?cost .
+    ?costToResourceAssignment  cr:refResource ?resource .
+    ?resource a cr:LabourResource.
+    ?costToResourceAssignment cr:refParamUtilizationFactor ?utilizationFactor.
+    
+    BIND(xsd:float(?quantity)*xsd:float(?utilizationFactor) as ?timeLabourResource)
+
+    ?task msproj:duration ?durationTask .
+    
+    
+    ?taskToResourceAssignment cr:refTask ?task .
+    ?taskToResourceAssignment cr:refResource ?resourceTask .
+    ?resourceTask a cr:LabourResource .
+    ?taskToResourceAssignment cr:refParamUtilizationRate ?rate .
+    
+	BIND(IF(STRSTARTS(STR(?durationTask), "-"), -1, 1) AS ?coef)
+    BIND(COALESCE(xsd:integer(REPLACE(STR(?durationTask), "^.*[A-Z](\\d+)D.*$", "$1")), 0) AS ?d)
+    BIND(COALESCE(xsd:integer(REPLACE(STR(?durationTask), "^.*T(\\d+)H.*$", "$1")), 0) AS ?h)
+    BIND(COALESCE(xsd:integer(REPLACE(STR(?durationTask), "^.*T(?:|.*[A-Z])(\\d+)M.*$", "$1")), 0) AS ?m)
+    BIND(COALESCE(xsd:decimal(REPLACE(STR(?durationTask), "^.*T(?:|.*[A-Z])(\\d*\\.?\\d*)S.*$", "$1")), 0) AS ?s)
+    BIND(?coef * ((((?d * 24 + ?h) * 60) + ?m) * 60 + ?s)/3600 AS ?totalDuration)
+    BIND(?totalDuration*?rate AS ?taskResourceTime)       
+    
+} GROUP BY ?task ?taskResourceTime ?cost

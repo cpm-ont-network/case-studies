@@ -1,0 +1,10 @@
+PREFIX ci: <https://w3id.org/ci#>
+PREFIX cr: <https://w3id.org/cr#>
+SELECT DISTINCT ((ROUND(SUM(?unitPrice * ?quantity)* 100) / 100.0) AS ?totalPrice)
+WHERE {
+  ?set cr:hasAssignment ?subject.
+  ?subject a cr:CostItemToGeometryAssignment.
+  ?subject cr:refParamQuantity ?quantity.
+  ?subject cr:refCostItem ?costItem.
+  ?costItem ci:unitPrice ?unitPrice.
+}
